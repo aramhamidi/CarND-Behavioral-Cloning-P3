@@ -27,10 +27,10 @@ with open ('data/driving_log.csv') as csvfile:
 
 del(samples[0])
 train_samples, validation_samples = train_test_split(samples, test_size=0.2)
-   
+
 def generator(samples, batch_size=64):
     num_samples = len(samples)
-
+    
     while 1:
         
         sklearn.utils.shuffle(samples)
@@ -40,19 +40,19 @@ def generator(samples, batch_size=64):
             images = []
             angles = []
             for batch_sample in batch_samples:
-
+                
                 name1 = 'data/IMG/' + batch_sample[0].split('/')[-1]
                 name2 = 'data/IMG/' + batch_sample[1].split('/')[-1]
                 name3 = 'data/IMG/' + batch_sample[2].split('/')[-1]
-
+                
                 center_image = cv2.imread(name1)
                 center_image = cv2.cvtColor(center_image, cv2.COLOR_BGR2RGB)
                 center_image = augment_brightness(center_image)
                 center_image = cv2.GaussianBlur(center_image, (3,3), 0)
                 center_image = cv2.cvtColor(center_image, cv2.COLOR_RGB2YUV)
-                images.append(center_image)
+                #images.append(center_image)
                 
-                center_angle = float(batch_sample[3])                
+                center_angle = float(batch_sample[3])
                 
                 
                 left_image = cv2.imread(name2)
@@ -60,8 +60,8 @@ def generator(samples, batch_size=64):
                 left_image = augment_brightness(left_image)
                 left_image = cv2.GaussianBlur(left_image, (3,3), 0)
                 left_image = cv2.cvtColor(left_image, cv2.COLOR_RGB2YUV)
-                images.append(left_image)
-
+                #images.append(left_image)
+                
                 left_angle = center_angle + 0.25
                 
                 
@@ -70,11 +70,11 @@ def generator(samples, batch_size=64):
                 right_image = augment_brightness(right_image)
                 right_image = cv2.GaussianBlur(right_image, (3,3), 0)
                 right_image = cv2.cvtColor(right_image, cv2.COLOR_RGB2YUV)
-                images.append(right_image)
-
+                #images.append(right_image)
+                
                 right_angle = center_angle - 0.25
                 
-
+                
                 images.append(center_image)
                 images.append(left_image)
                 images.append(right_image)
@@ -83,10 +83,22 @@ def generator(samples, batch_size=64):
                 angles.append(left_angle)
                 angles.append(right_angle)
                 
-                for image, angle in zip(images, angles):
-                    images.append(cv2.flip(image,1))
-                    angles.append(angle * -1.0)
-           
+                #augmented_images, augmented_angles = [], []
+                #for image, angle in zip(images, angles):
+                #   images.append(image)
+                #  angles.append(angle)
+                #  images.append(cv2.flip(image,1))
+                #  angles.append(angle * -1.0)
+                
+                images.append(cv2.flip(center_image,1))
+                angles.append(center_angle * -1.0)
+                
+                images.append(cv2.flip(left_image,1))
+                angles.append(left_angle * -1.0)
+                
+                images.append(cv2.flip(right_image,1))
+                angles.append(right_angle * -1.0)
+            
             X_train = np.array(images)
             y_train = np.array(angles)
             (X_train, y_train)= sklearn.utils.shuffle(X_train, y_train)
@@ -96,7 +108,6 @@ train_generator = generator(train_samples, batch_size=32)
 validation_generator = generator(validation_samples, batch_size=32)
 
 print("Data is loaded")  
-
 
 # num_samples = len(samples)
 # samples_generated = 0
