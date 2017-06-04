@@ -66,23 +66,23 @@ def generator(samples, batch_size=32):
 
                 steering_angle = float(batch_sample[3])
                 camera = np.random.choice(['center', 'left', 'right'])
+                if steering_angle < 0.06 and steering_angle > -0.06:
 
+                    if camera == 'left':
+                        steering_angle += 0.25
+
+                    elif camera == 'right':
+                        steering_angle -= 0.25
+                
                 if camera == 'left':
                     image = cv2.imread(name2)
-                    steering_angle += 0.2
-                    #angles.append(steering_angle)
-
+                
                 elif camera == 'right':
                     image = cv2.imread(name3)
-                    steering_angle -= 0.2
-                    #angles.append(steering_angle)
 
-                else :
+                else:
                     image = cv2.imread(name1)
 
-
-                
-                # decide whether to horizontally flip the image:
                 flip_prob = np.random.random()
                 if flip_prob > 0.5:
                     steering_angle = (steering_angle * -0.1)
@@ -148,7 +148,7 @@ model.add(Dense(100))
 model.add(Dense(50))
 model.add(Dense(10))
 model.add(Dense(1))
-model.summary()
+#model.summary()
 
 
 
@@ -166,7 +166,7 @@ history_object = model.fit_generator(train_generator, samples_per_epoch =
     4*len(train_samples), validation_data =
     validation_generator,
     nb_val_samples = len(validation_samples), 
-    nb_epoch=3, verbose=1)
+    nb_epoch=4, verbose=1)
 
 ### print the keys contained in the history object
 print(history_object.history.keys())
