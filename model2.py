@@ -66,13 +66,13 @@ def generator(samples, batch_size=32):
 
                 steering_angle = float(batch_sample[3])
                 camera = np.random.choice(['center', 'left', 'right'])
-                if steering_angle < 0.06 and steering_angle > -0.06:
-
-                    if camera == 'left':
-                        steering_angle += 0.25
-
-                    elif camera == 'right':
+                if steering_angle <= 0.15 and steering_angle >= -0.15:
+                    camera_side = np.random.random()
+                    if camera_side >=0.7 :
                         steering_angle -= 0.25
+
+                    else:
+                        steering_angle += 0.25
                 
                 if camera == 'left':
                     image = cv2.imread(name2)
@@ -108,7 +108,7 @@ print("Data is loaded")
 num_samples = len(samples)
 samples_generated = 0
 steering_angles = None
-while samples_generated < 4*num_samples:
+while samples_generated < 5*num_samples:
     X_batch, y_batch = next(train_generator)
     if steering_angles is not None:
         steering_angles = np.concatenate([steering_angles, y_batch])
@@ -163,10 +163,10 @@ model.compile(loss='mse', optimizer='adam')
 # for validation set.
 
 history_object = model.fit_generator(train_generator, samples_per_epoch =
-    4*len(train_samples), validation_data =
+    5*len(train_samples), validation_data =
     validation_generator,
     nb_val_samples = len(validation_samples), 
-    nb_epoch=4, verbose=1)
+    nb_epoch=3, verbose=1)
 
 ### print the keys contained in the history object
 print(history_object.history.keys())
