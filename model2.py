@@ -31,8 +31,11 @@ def flip_data(image, steering_angle):
     return image, steering_angle
 
 def augment_image(image):
-    image = augment_brightness(image)
-    image = cv2.GaussianBlur(image, (3,3), 0)
+    flip_prob = np.random.random()
+    if flip_prob > 0.5:
+        image = augment_brightness(image)
+    else:
+        image = cv2.GaussianBlur(image, (3,3), 0)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
     return image
 
@@ -165,7 +168,7 @@ print("Data is loaded")
 num_samples = len(samples)
 samples_generated = 0
 steering_angles = None
-while samples_generated < 6*num_samples:
+while samples_generated < 3*num_samples:
     X_batch, y_batch = next(train_generator)
     if steering_angles is not None:
         steering_angles = np.concatenate([steering_angles, y_batch])
@@ -220,7 +223,7 @@ model.compile(loss='mse', optimizer='adam')
 # for validation set.
 
 history_object = model.fit_generator(train_generator, samples_per_epoch =
-    6*len(train_samples), validation_data =
+    3*len(train_samples), validation_data =
     validation_generator,
     nb_val_samples = len(validation_samples), 
     nb_epoch=3, verbose=1)
