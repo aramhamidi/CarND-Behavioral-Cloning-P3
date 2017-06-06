@@ -85,7 +85,7 @@ train_samples, validation_samples = train_test_split(samples, test_size=0.2)
 
 def generator(samples, batch_size=32):
     num_samples = len(samples)
-    correction = 0.25
+    correction = 0.2
     while 1:
         
         sklearn.utils.shuffle(samples)
@@ -195,13 +195,13 @@ model = Sequential()
 model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=(160,320,3), output_shape=(160,320,3)))
 model.add(Cropping2D(cropping=((70,25), (0,0)), input_shape=(160, 320, 3)))
 model.add(AveragePooling2D(pool_size=(2, 2), strides=(2,2)))
-model.add(Convolution2D(24,3,3, subsample=(2,2), activation="relu"))#5
+model.add(Convolution2D(24,3,3, subsample=(2,2), activation="elu"))#5
 model.add(Dropout(0.3))
-model.add(Convolution2D(36,3,3, subsample=(2,2), activation="relu"))
-model.add(Convolution2D(48,3,3, subsample=(2,2), activation="relu"))
+model.add(Convolution2D(36,3,3, subsample=(2,2), activation="elu"))
+model.add(Convolution2D(48,3,3, subsample=(2,2), activation="elu"))
 model.add(Dropout(0.5))
-model.add(Convolution2D(64,1,1, activation="relu"))#3
-model.add(Convolution2D(64,1,1, activation="relu"))
+model.add(Convolution2D(64,1,1, activation="elu"))#3
+model.add(Convolution2D(64,1,1, activation="elu"))
 
 model.add(Flatten())
 model.add(Dense(100))
@@ -226,7 +226,7 @@ history_object = model.fit_generator(train_generator, samples_per_epoch =
     3*len(train_samples), validation_data =
     validation_generator,
     nb_val_samples = len(validation_samples), 
-    nb_epoch=3, verbose=1)
+    nb_epoch=4, verbose=1)
 
 ### print the keys contained in the history object
 print(history_object.history.keys())
