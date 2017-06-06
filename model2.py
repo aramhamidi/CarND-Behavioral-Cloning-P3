@@ -23,6 +23,18 @@ def augment_brightness(image):
     image1 = cv2.cvtColor(image1,cv2.COLOR_HSV2BGR)
     return image1
 
+def flip_data(image, steering_angle):
+    flip_prob = np.random.random()
+    if flip_prob > 0.5:
+        steering_angle = (steering_angle * -0.1)
+        image = cv2.flip(image, 1)
+    return image, steering_angle
+
+def augment_image(image):
+    image = augment_brightness(image)
+    image = cv2.GaussianBlur(image, (3,3), 0)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
+    return image
 
 samples = []
 with open ('data/driving_log.csv') as csvfile:
@@ -32,24 +44,45 @@ with open ('data/driving_log.csv') as csvfile:
 
 del(samples[0])
 steering = []
-balanced_angles = []
+balanced_data = []
+
 for lines in samples:
-    steering.append(float(lines[3]))
-#    if  float(lines[3]) >= 0 and float(lines[3]) < 0.06:
-#        balanced_angles.append(float(lines[3]) - 0.025)
-#    else:
-#        balanced_angles.append(float(lines[3]))
+    angle = float(lines[3])
+    if abs(angle) >= 0.03:
+        steering.append(float(lines[3]))
+        balanced_data.append(lines)
+    elif np.random.random() > 0.85:
+        steering.append(float(lines[3]))
+        balanced_data.append(lines)
 
-print("steering length", len(steering))
+for angle in steering:
+                camera = None
+                correction = 0
+                if abs(angle) <= 0.05:
+                    camera = np.random.choice(['left', 'right'])
+                    correction = 0.07
+                else:
+                    camera = np.random.choice(['center', 'left', 'right'])
+                    correction = 0.2
 
-#plt.hist(steering, bins=[-0.55, -0.5, -0.45, -0.4, -0.35, -0.3,-0.25, -0.2, -0.15, -0.1,-0.05, 0, 0.05, 0.1,0.15, 0.2,0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55], align='left')
-#plt.show()
+                if camera == 'left':
+                    angle += correction
+
+                elif camera == 'right':
+                    angle -= correction
+
+samples = balanced_data
+print("samples length", len(samples))
+print("balanced_data length", len(balanced_data))
+
+plt.hist(steering, bins=[-0.55, -0.5, -0.45, -0.4, -0.35, -0.3,-0.25, -0.2, -0.15, -0.1,-0.05, 0, 0.05, 0.1,0.15, 0.2,0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55], align='left')
+plt.show()
 
 train_samples, validation_samples = train_test_split(samples, test_size=0.2)
 
 def generator(samples, batch_size=32):
     num_samples = len(samples)
-    
+    correction = 0.25
     while 1:
         
         sklearn.utils.shuffle(samples)
@@ -59,41 +92,65 @@ def generator(samples, batch_size=32):
             images = []
             angles = []
             for batch_sample in batch_samples:
-                
+
                 name1 = 'data/IMG/' + batch_sample[0].split('/')[-1]
                 name2 = 'data/IMG/' + batch_sample[1].split('/')[-1]
                 name3 = 'data/IMG/' + batch_sample[2].split('/')[-1]
-
-                steering_angle = float(batch_sample[3])
-                camera = np.random.choice(['center', 'left', 'right'])
-                if steering_angle <= 0.15 and steering_angle >= -0.15:
-                    camera_side = np.random.random()
-                    if camera_side >=0.7 :
-                        steering_angle -= 0.25
-
-                    else:
-                        steering_angle += 0.25
                 
-                if camera == 'left':
-                    image = cv2.imread(name2)
                 
-                elif camera == 'right':
-                    image = cv2.imread(name3)
+                center_angle = float(batch_sample[3])
+                left_angle = center_angle + correction
+                right_angle = center_angle - correction
+#                correction = 0
+#                camera = None
+#                if abs(steering_angle) <= 0.05:
+#                    camera = np.random.choice(['left', 'right'])
+#                    correction = 0.07
+#                else:
+#                    camera = np.random.choice(['center', 'left', 'right'])
+#                    correction = 0.2
+#                
+#                if camera == 'left':
+#                    steering_angle += correction
+#                    image = cv2.imread(name2)
+#                        
+#                elif camera == 'right':
+#                    steering_angle -= correction
+#                    image = cv2.imread(name3)
+#                else:
+#                    image = cv2.imread(name1)
 
-                else:
-                    image = cv2.imread(name1)
 
-                flip_prob = np.random.random()
-                if flip_prob > 0.5:
-                    steering_angle = (steering_angle * -0.1)
-                    image = cv2.flip(image, 1)
-
-                image = augment_brightness(image)
-                image = cv2.GaussianBlur(image, (3,3), 0)
-                image = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
-                
-                angles.append(steering_angle)
-                images.append(image)
+#                flip_prob = np.random.random()
+#                if flip_prob > 0.5:
+#                    steering_angle = (steering_angle * -0.1)
+#                    image = cv2.flip(image, 1)
+#
+#                image = augment_brightness(image)
+#                image = cv2.GaussianBlur(image, (3,3), 0)
+#                image = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
+#                
+#                angles.append(steering_angle)
+#                images.append(image)
+                center_image = cv2.imread(name1)
+                left_image = cv2.imread(name2)
+                right_image = cv2.imread(name3)
+            
+                center_image, center_angle = flip_data(center_image, center_angle)
+                left_image, left_angle = flip_data(left_image, left_angle)
+                right_image, right_angle = flip_data(right_image, right_angle)
+            
+                center_image = augment_image(center_image)
+                right_image = augment_image(right_image)
+                left_image = augment_image(left_image)
+            
+                angles.append(center_angle)
+                angles.append(left_angle)
+                angles.append(right_angle)
+            
+                images.append(center_image)
+                images.append(left_image)
+                images.append(right_image)
 
             X_train = np.array(images)
             y_train = np.array(angles)
@@ -108,7 +165,7 @@ print("Data is loaded")
 num_samples = len(samples)
 samples_generated = 0
 steering_angles = None
-while samples_generated < 5*num_samples:
+while samples_generated < 6*num_samples:
     X_batch, y_batch = next(train_generator)
     if steering_angles is not None:
         steering_angles = np.concatenate([steering_angles, y_batch])
@@ -120,7 +177,7 @@ plt.hist(steering_angles,bins=[-0.55,-0.5, -0.45, -0.4, -0.35, -0.3,-0.25, -0.2,
 plt.show()
 
 #------------------------------------Model Architecture------------------------------------------
-#
+
 from keras.models import Sequential
 from keras.layers import Flatten, Dense, Lambda, Dropout, Input
 from keras.layers import Convolution2D
@@ -163,7 +220,7 @@ model.compile(loss='mse', optimizer='adam')
 # for validation set.
 
 history_object = model.fit_generator(train_generator, samples_per_epoch =
-    5*len(train_samples), validation_data =
+    6*len(train_samples), validation_data =
     validation_generator,
     nb_val_samples = len(validation_samples), 
     nb_epoch=3, verbose=1)
