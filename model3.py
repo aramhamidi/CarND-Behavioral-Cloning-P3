@@ -26,9 +26,9 @@ def augment_brightness(image):
 
 def flip_data(image, steering_angle):
     flip_prob = np.random.random()
-    if flip_prob > 0.4:
-        steering_angle = (steering_angle * -0.1)
-        image = cv2.flip(image, 1)
+        #if flip_prob > 0.4:
+    steering_angle = (steering_angle * -0.1)
+    image = cv2.flip(image, 1)
     return image, steering_angle
 
 
@@ -52,10 +52,10 @@ balanced_data = []
 
 for lines in samples:
     angle = float(lines[3])
-    if abs(angle) >= 0.001:
+    if abs(angle) >= 0.7:  #0.25
         steering.append(float(lines[3]))
         balanced_data.append(lines)
-    elif np.random.random() > 0.9:
+    elif np.random.random() > 0.9: #0.9
         steering.append(float(lines[3]))
         balanced_data.append(lines)
 
@@ -101,40 +101,6 @@ def generator(samples, batch_size=32):
                 name2 = 'data/IMG/' + batch_sample[1].split('/')[-1]
                 name3 = 'data/IMG/' + batch_sample[2].split('/')[-1]
                 
-                
-#                correction = 0
-#                camera = None
-#                steering_angle = float(batch_sample[3])
-#                if abs(steering_angle) <= 0.07:
-#                    camera = np.random.choice(['left', 'right'])
-#                    correction = 0.25
-#                else:
-#                    camera = np.random.choice(['center', 'left', 'right'])
-#                    correction = 0.25
-#                
-#                if camera == 'left':
-#                    steering_angle += correction
-#                    image = cv2.imread(name2)
-#                        
-#                elif camera == 'right':
-#                    steering_angle -= correction
-#                    image = cv2.imread(name3)
-#                else:
-#                    image = cv2.imread(name1)
-#
-#
-#                flip_prob = np.random.random()
-#                if flip_prob > 0.5:
-#                    steering_angle = (steering_angle * -0.1)
-#                    image = cv2.flip(image, 1)
-#
-#                image = augment_brightness(image)
-#                image = cv2.GaussianBlur(image, (3,3), 0)
-#                image = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
-#                
-#                angles.append(steering_angle)
-#                images.append(image)
-
                 correction = 0.25
                 center_angle = float(batch_sample[3])
                 left_angle = center_angle + correction
@@ -147,6 +113,21 @@ def generator(samples, batch_size=32):
                 center_image = cv2.imread(name1)
                 left_image = cv2.imread(name2)
                 right_image = cv2.imread(name3)
+                
+                #Resize images to 64*64
+                center_image = ResizeImage(center_image)
+                left_image = ResizeImage(left_image)
+                right_image = ResizeImage(right_image)
+                
+                #append original images for all three cameras
+                images.append(center_image)
+                images.append(left_image)
+                images.append(right_image)
+                
+                #append corrected angles for all three cameras
+                angles.append(center_angle)
+                angles.append(left_angle)
+                angles.append(right_angle)
 
                 #flip images and angles
                 center_image, center_angle = flip_data(center_image, center_angle)
@@ -204,10 +185,10 @@ from keras.models import Model
 import matplotlib.pyplot as plt
 from keras.layers.pooling import AveragePooling2D
 
+
 model = Sequential()
-model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=(160,320,3), output_shape=(160,320,3)))
-model.add(Cropping2D(cropping=((70,25), (0,0)), input_shape=(160, 320, 3)))
-model.add(AveragePooling2D(pool_size=(2, 2), strides=(2,2)))
+model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=(64,64,3), output_shape=(64,64,3)))
+model.add(Cropping2D(cropping=((28,0), (0,0)), input_shape=(64,64,3)))
 model.add(Convolution2D(24,3,3, subsample=(2,2), activation="elu"))#5
 model.add(Dropout(0.5))
 model.add(Convolution2D(36,3,3, subsample=(2,2), activation="elu"))
@@ -215,13 +196,13 @@ model.add(Convolution2D(48,3,3, subsample=(2,2), activation="elu"))
 model.add(Dropout(0.5))
 model.add(Convolution2D(64,1,1, activation="elu"))#3
 model.add(Convolution2D(64,1,1, activation="elu"))
-
 model.add(Flatten())
 model.add(Dense(100))
 model.add(Dense(50))
 model.add(Dense(10))
 model.add(Dense(1))
 #model.summary()
+
 
 ##------------------------------Comiling Model----------------------------------##
 
