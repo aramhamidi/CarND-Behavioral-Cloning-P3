@@ -2,7 +2,7 @@
 # Behaviorial Cloning
 ## Project 3
 
-In this project, NVIDIA NW is reimplemented with some modifications to get the best accuracy. Model is trained on Amazon Web Service EC2 instance. 
+In this project 3 different models (LeNet, Nvidia and a basic model) are implemented and tested on the data set. NVIDIA NetWork is with some modifications is chosed to get the best accuracy. Model is trained on Amazon Web Service EC2 instance. 
 
 
 ```python
