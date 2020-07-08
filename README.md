@@ -450,9 +450,9 @@ Reading a very useful article about traingin models with unbalanced data, I lear
 
 # Few insights: 
 Machine learning involves trying out ideas and testing them to see if they work. Whatever that works for someone else might not be working well for me! 
-1. despretly going through the forum relized that some people have got fantastic results using YUV color sapce and bluring the images. I spend so much time doing the same. At first I got better results but everntually I relized those two steps aren't much helping me. I assume that it was because I was also resizing my images to a much smaller pixels 64 by 64.
-2. validation/training loss aren't always the best metrics to evaluate the model. 
-3. training a model with unbalanced data is very challenging. I learned different great methods of augmenting and balancing a data set.
+1. Going through the forum realized that some people have got fantastic results using YUV color space and blurring images. I spent so much time doing the same. At first I got better results but everntually I realized overall results arenot improved significantly. I assume the reason was also resizing the images to a smaller image size; 64 by 64.
+2. validation/training loss are not always the best metrics to evaluate the model. 
+3. training a model with unbalanced data is very challenging. Augmenting and balancing a data set is very helpful.
 4. Dropout layers although helpful but if too many can cause overfitting.
-5. When using generators, we have to be careful about samples_per_epoch with augmented data! 
+5. When using generators, we have to be careful about samples_per_epoch with augmented data. 
 
